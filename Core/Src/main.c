@@ -75,7 +75,6 @@ uint32_t IC_Val2 = 0;
 uint32_t Difference = 0;
 uint8_t Is_First_Captured = 0;  // is the first value captured ?
 uint8_t Distance  = 0;
-
 #define TRIG_PIN GPIO_PIN_8
 #define TRIG_PORT GPIOE
 
@@ -162,9 +161,11 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+
+
   HAL_TIM_IC_Start_IT(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2,TIM_CHANNEL_1);
-  TIM2->CCR1 = 1000;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -174,8 +175,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HCSR04_Read();
-	  HAL_Delay(200);
+	  static uint16_t i = 800;
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1,i);
+//	  HCSR04_Read();
+//	  HAL_Delay(1000);
+	  i = i + 100;
+	  if(i > 2500) {
+		  i = 800;
+	  }
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -324,7 +332,7 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 150;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
