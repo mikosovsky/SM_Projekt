@@ -78,8 +78,9 @@ uint8_t Distance  = 0;
 #define TRIG_PIN GPIO_PIN_8
 #define TRIG_PORT GPIOE
 uint8_t yr = 7;
-float y = 0,inte = 0,Ki = 1.25,Kp = 2.91,Td = 2.64, u = 0;
+float y = 0,Ki = 1.25,Kp = 2.91,Td = 2.64, u = 0, ui = 0;
 float e[] = {0,0};
+uint16_t PWM = 0;
 
 // Let's write the callback function
 
@@ -181,16 +182,16 @@ int main(void)
 	  HCSR04_Read();
 	  y = Distance;
 	  e[0] = yr - y;
-	  inte += e[0];
-	  u = Kp*(e[0] + 0.01*Kp*inte+Td*(e[0]-e[1])/0.01);
+	  ui = (2*ui+Ki*0.01*(e[0]+e[1]))/2;
+	  u = Kp*e[0] + Td*(e[0]-e[1])/0.01;
 	  e[1] = e[0];
-	  u = u*180/3.14 + 90;
+	  u += 90;
 	  if ( u > 135) {
 		  u = 135;
 	  } else if(u < 45) {
 		  u = 45;
 	  }
-	  uint16_t PWM = 9*u+800;
+	  PWM = 9*u+800;
 	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1,PWM);
 	  HAL_Delay(10);
   }
@@ -341,7 +342,7 @@ static void MX_TIM2_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 150;
+  sConfigOC.Pulse = 1500;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
