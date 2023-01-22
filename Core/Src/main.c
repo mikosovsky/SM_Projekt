@@ -77,6 +77,9 @@ uint8_t Is_First_Captured = 0;  // is the first value captured ?
 uint8_t Distance  = 0;
 #define TRIG_PIN GPIO_PIN_8
 #define TRIG_PORT GPIOE
+uint8_t yr = 7;
+float y = 0,inte = 0,Ki = 1.25,Kp = 2.91,Td = 2.64, u = 0;
+float e[] = {0,0};
 
 // Let's write the callback function
 
@@ -175,15 +178,21 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  static uint16_t i = 800;
-	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1,i);
-//	  HCSR04_Read();
-//	  HAL_Delay(1000);
-	  i = i + 100;
-	  if(i > 2500) {
-		  i = 800;
+	  HCSR04_Read();
+	  y = Distance;
+	  e[0] = yr - y;
+	  inte += e[0];
+	  u = Kp*(e[0] + 0.01*Kp*inte+Td*(e[0]-e[1])/0.01);
+	  e[1] = e[0];
+	  u = u*180/3.14 + 90;
+	  if ( u > 135) {
+		  u = 135;
+	  } else if(u < 45) {
+		  u = 45;
 	  }
-	  HAL_Delay(1000);
+	  uint16_t PWM = 9*u+800;
+	  __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1,PWM);
+	  HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
