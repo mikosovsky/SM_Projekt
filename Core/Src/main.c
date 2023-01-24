@@ -74,11 +74,11 @@ uint32_t IC_Val1 = 0;
 uint32_t IC_Val2 = 0;
 uint32_t Difference = 0;
 uint8_t Is_First_Captured = 0;  // is the first value captured ?
-uint8_t Distance  = 0;
+float Distance  = 0;
 #define TRIG_PIN GPIO_PIN_8
 #define TRIG_PORT GPIOE
-uint8_t yr = 7;
-float y = 0,Ki = 1.25,Kp = 2.91,Td = 1/1.67, u = 0, ui = 0;
+float yr = 7.5;
+float y = 0,Ki = 0,Kp = 0.7,Td = 1/1.67, u = 0, Tp=0.1;
 float e[] = {0,0};
 uint16_t PWM = 0;
 
@@ -112,6 +112,9 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 			}
 
 			Distance = Difference * .034/2;
+			if(Distance > 20){
+				Distance = 0;
+			}
 			Is_First_Captured = 0; // set it back to false
 
 			// set polarity to rising edge
@@ -182,8 +185,7 @@ int main(void)
 	  HCSR04_Read();
 	  y = Distance;
 	  e[0] = yr - y;
-	  ui = (2*ui+Ki*0.01*(e[0]+e[1]))/2;
-	  u = Kp*e[0] + Td*(e[0]-e[1])/0.01;
+	  u = Kp*e[0] + Td*(e[0]-e[1])/Tp + (2*ui+Ki*Tp*(e[0]+e[1]))/2;;
 	  e[1] = e[0];
 	  u += 90;
 	  if ( u > 135) {
